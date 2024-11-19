@@ -1,36 +1,66 @@
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.geom.*;
 import javax.swing.*;
 
-public class Main {
-    public static void main(String[] args) {
-        JFrame fr = new JFrame("Вращение четырёхугольника вокруг своего центра тяжести");
-        fr.setPreferredSize(new Dimension(300, 300));
-        final JPanel pan = new JPanel();
-        fr.add(pan);
-        fr.setVisible(true);
-        fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        fr.pack();
-        Timer tm = new Timer(500, new ActionListener() {
-            int i = 0;
+public class Main extends JPanel {
 
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                Graphics2D gr = (Graphics2D) pan.getGraphics();
-                pan.paint(gr);
+     double angle = 0;
+     Point2D centerGravity;
+     Polygon polygon;
 
-                GeneralPath path = new GeneralPath();
-                path.append(new Polygon(new int[]{50, 50, -50, -50}, new int[]{50, -50, -50, 50}, 4), true);
+    public Main() {
+        int[] xPoints = {80, 50, -40, -60};
+        int[] yPoints = {20, -50, -70, 100};
+        polygon = new Polygon(xPoints, yPoints, 4);
 
-                int x = 0, y = 0;
 
-                gr.translate(150, 150);
-                AffineTransform tranforms = AffineTransform.getRotateInstance((i++) * 0.07, x, y);
-                gr.transform(tranforms);
-                gr.draw(path);
-            }
+        centerGravity = CenterOfGravity(xPoints, yPoints);
+
+        Timer timer = new Timer(50, e -> {
+            angle += 0.07;
+            repaint();
         });
-        tm.start();
+        timer.start();
+    }
+
+    Point2D CenterOfGravity(int[] x, int[] y) {
+        double cx1 = (x[0] + x[1] + x[2]) / 3.0;
+        double cy1 = (y[0] + y[1] + y[2]) / 3.0;
+
+        double cx2 = (x[0] + x[2] + x[3]) / 3.0;
+        double cy2 = (y[0] + y[2] + y[3]) / 3.0;
+
+        double cx3 = (x[1] + x[0] + x[3]) / 3.0;
+        double cy3 = (y[1] + y[0] + y[3]) / 3.0;
+
+        double cx4 = (x[1] + x[3] + x[2]) / 3.0;
+        double cy4 = (y[1] + y[3] + y[2]) / 3.0;
+
+
+        return new Point2D.Double((cx1 + cx2 + cx3 + cx4) / 4, (cy1 + cy2 + cy3 + cy4) / 4);
+
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        g.translate(150, 150);
+
+        AffineTransform transform = AffineTransform.getRotateInstance(angle, centerGravity.getX(), centerGravity.getY());
+        g2d.transform(transform);
+
+        g2d.draw(polygon);
+    }
+
+    public static void main(String[] args) {
+        JFrame fr = new JFrame("Вращение четырёхугольника");
+        fr.add(new Main());
+        fr.setSize(300, 300);
+        fr.setLocationRelativeTo(null);
+        fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        fr.setVisible(true);
+
     }
 }
